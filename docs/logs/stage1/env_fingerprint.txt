@@ -1,0 +1,31 @@
+== 采集时间 ==
+2026-10-27T20:31:06+08:00
+
+== 操作系统 ==
+Linux minecraft-server 6.8.0-147-generic #147-Ubuntu SMP PREEMPT_DYNAMIC Thu Sep 24 11:33:16 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux
+PRETTY_NAME="Ubuntu 24.04.2 LTS"
+VERSION="24.04.2 LTS (Noble Numbat)"
+
+== 工具链 ==
+riscv64-linux-gnu-gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+Verilator 4.218 2022-01-17 rev v4.218
+
+== XiangShan ==
+16ae9ddcd feat(Top): make address spaces of seperate TL port configurable (#4496)
+工作区改动（应为空）:
+?? 1.txt
+
+== NEMU ==
+a48a11f2 perf(ame): add auto-vectorized floating-point MMACC paths (#1197)
+
+== submodules ==
+ 82079f4081bbc1f0221c790fbf8a29b1f23f48b8 coupledL2 (v0.9-247-g82079f40)
+ 62e4540c03c03aa947bdb67f4b6bf66f1a29c5d0 difftest (remotes/origin/south-314-g62e4540c0)
+ e1bd4695ca7beb36a5ce7357e9527ad9e95b9ec1 fudian (heads/pipeline)
+ 90aaf5935206ff322e461c3d021436c20dd0ac85 huancun (remotes/origin/tmp_use_maxhartidbits-9-g90aaf59)
+ 614ceb4c5d39d32e6ae786693a35da429ea32c12 openLLC (614ceb4)
+ ed8c30e1ec8a9c9aa6b116ce54281235d00273fa ready-to-run (nemu-ci-workloads-20250913~23)
+ bea0af5d855a871699b907c1988961141bbf28e7 rocket-chip (remotes/origin/fix-cnop-1-gbea0af5d8)
+ 9464aee3c77b021a037f28aa1b3fe53c71b516f6 src/main/resources/aia (heads/main)
+ a8ca0c6564865ee69b564d431ecbc52074ba8060 utility (remotes/origin/upd-onehot-90-ga8ca0c6)
+ cadd3c2f43096e253d61296b33ac697be8354e29 yunsuan (remotes/origin/fix_pipeline-11-gcadd3c2)

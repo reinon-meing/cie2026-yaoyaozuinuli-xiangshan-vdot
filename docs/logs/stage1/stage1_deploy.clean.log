@@ -1,0 +1,50 @@
+Script started on 2026-10-27 20:30:28+08:00 [COMMAND="bash ~/stage1-record.sh" TERM="xterm-256color" TTY="/dev/pts/1" COLUMNS="-1" LINES="-1"]
++ cd /home/minecraft-server/xs-env
++ source env.sh
+++ SCRIPT_PATH=env.sh
+++++ realpath env.sh
++++ dirname /home/minecraft-server/xs-env/env.sh
+++ export XS_PROJECT_ROOT=/home/minecraft-server/xs-env
+++ XS_PROJECT_ROOT=/home/minecraft-server/xs-env
+++ export NEMU_HOME=/home/minecraft-server/xs-env/NEMU
+++ NEMU_HOME=/home/minecraft-server/xs-env/NEMU
+++ export AM_HOME=/home/minecraft-server/xs-env/nexus-am
+++ AM_HOME=/home/minecraft-server/xs-env/nexus-am
+++ export NOOP_HOME=/home/minecraft-server/xs-env/XiangShan
+++ NOOP_HOME=/home/minecraft-server/xs-env/XiangShan
+++ export DRAMSIM3_HOME=/home/minecraft-server/xs-env/DRAMsim3
+++ DRAMSIM3_HOME=/home/minecraft-server/xs-env/DRAMsim3
+++ echo SET XS_PROJECT_ROOT: /home/minecraft-server/xs-env
+SET XS_PROJECT_ROOT: /home/minecraft-server/xs-env
+++ echo SET NOOP_HOME '(XiangShan' RTL 'Home):' /home/minecraft-server/xs-env/XiangShan
+SET NOOP_HOME (XiangShan RTL Home): /home/minecraft-server/xs-env/XiangShan
+++ echo SET NEMU_HOME: /home/minecraft-server/xs-env/NEMU
+SET NEMU_HOME: /home/minecraft-server/xs-env/NEMU
+++ echo SET AM_HOME: /home/minecraft-server/xs-env/nexus-am
+SET AM_HOME: /home/minecraft-server/xs-env/nexus-am
+++ echo SET DRAMSIM3_HOME: /home/minecraft-server/xs-env/DRAMsim3
+SET DRAMSIM3_HOME: /home/minecraft-server/xs-env/DRAMsim3
++ cd /home/minecraft-server/xs-env/nexus-am/apps/hello
++ make ARCH=riscv64-xs CROSS_COMPILE=riscv64-linux-gnu-
+# Building hello [riscv64-xs] with AM_HOME {/home/minecraft-server/xs-env/nexus-am}
+# Building lib-am [riscv64-xs]
++ AS src/nemu/common/mainargs.S
++ AR -> build/am-riscv64-xs.a
+# Building lib-klib [riscv64-xs]
+# Creating binary image [riscv64-xs]
++ LD -> build/hello-riscv64-xs.elf
++ OBJCOPY -> build/hello-riscv64-xs.bin
++ cd /home/minecraft-server/xs-env/XiangShan
++ ./build/emu -i /home/minecraft-server/xs-env/nexus-am/apps/hello/build/hello-riscv64-xs.bin --diff ready-to-run/riscv64-nemu-interpreter-so
+emu compiled at Oct 27 2026, 07:23:46
+Using simulated 32768B flash
+Using simulated 8386560MB RAM
+The image is /home/minecraft-server/xs-env/nexus-am/apps/hello/build/hello-riscv64-xs.bin
+The reference model is ready-to-run/riscv64-nemu-interpreter-so
+The first instruction of core 0 has commited. Difftest enabled. 
+hello xiangshan, I am 尧尧最努力, IP address 192.168.100.192
+Core 0: HIT GOOD TRAP at pc = 0x8000015c
+Core-0 instrCnt = 2,050, cycleCnt = 9,720, IPC = 0.210905
+Host time spent: 33,895ms
+
+Script done on 2026-10-27 20:31:02+08:00 [COMMAND_EXIT_CODE="0"]

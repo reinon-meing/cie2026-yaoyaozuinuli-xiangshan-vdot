@@ -1,0 +1,7 @@
+emu compiled at Nov  3 2026, 19:00:22
+Using simulated 32768B flash
+Using simulated 8386560MB RAM
+The image is /home/minecraft-server/xs-env/nexus-am/apps/base_latbench/build/base_latbench-riscv64-xs.bin
+BASE_LATBENCH BENCH BEGIN (REP=200)
+BASE_LATBENCH BENCH DONE result=120 cycles=1119 instret=1210
+Exit with code = 0

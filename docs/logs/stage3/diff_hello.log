@@ -1,0 +1,8 @@
+emu compiled at Nov  3 2026, 19:00:22
+Using simulated 32768B flash
+Using simulated 8386560MB RAM
+The image is /home/minecraft-server/xs-env/nexus-am/apps/hello/build/hello-riscv64-xs.bin
+The reference model is /home/minecraft-server/xs-env/NEMU/build/riscv64-nemu-interpreter-so
+hello xiangshan, I am 尧尧最努力, IP address 192.168.100.192
+Exit with code = 0
+TIMEOUT_EXIT=124

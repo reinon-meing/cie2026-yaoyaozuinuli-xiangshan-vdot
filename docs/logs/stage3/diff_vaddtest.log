@@ -1,0 +1,9 @@
+emu compiled at Nov  3 2026, 19:00:22
+Using simulated 32768B flash
+Using simulated 8386560MB RAM
+The image is /home/minecraft-server/xs-env/nexus-am/apps/vaddtest/build/vaddtest-riscv64-xs.bin
+The reference model is /home/minecraft-server/xs-env/NEMU/build/riscv64-nemu-interpreter-so
+VADD_WINDOW cycle 10529781400062054013 -> 10529781400062054015
+17 17 17 17 17 17 17 17 17 17 17 17 17 17 17 17 
+Exit with code = 0
+TIMEOUT_EXIT=124

@@ -1,0 +1,19 @@
+emu compiled at Nov  3 2026, 19:00:22
+Using simulated 32768B flash
+Using simulated 8386560MB RAM
+The image is /home/minecraft-server/xs-env/nexus-am/apps/vdottest/build/vdottest-riscv64-xs.bin
+The reference model is /home/minecraft-server/xs-env/NEMU/build/riscv64-nemu-interpreter-so
+VDOT TEST BEGIN (VLEN=128 SEW=8 LMUL=1, cases=11)
+[CASE 1] pos-ramp expect=120 got=120 tail_zero=1 PASS
+[CASE 1] pos-uniform expect=120 got=120 tail_zero=1 PASS
+[CASE 1] pos-with-max expect=1016 got=1016 tail_zero=1 PASS
+[CASE 2] neg-mixed-sign expect=36 got=36 tail_zero=1 PASS
+[CASE 2] neg-nonuniform expect=-204 got=-204 tail_zero=1 PASS
+[CASE 2] neg-all-neg expect=276 got=276 tail_zero=1 PASS
+[CASE 3] bnd-max-positive expect=131072 got=131072 tail_zero=1 PASS
+[CASE 3] bnd-max-negative expect=-130048 got=-130048 tail_zero=1 PASS
+[CASE 3] bnd-127-squared expect=129032 got=129032 tail_zero=1 PASS
+[CASE 3] bnd-zero expect=0 got=0 tail_zero=1 PASS
+[CASE 3] bnd-tail-ignored expect=8 got=8 tail_zero=1 PASS
+VDOT RESULT: 11/11 PASSED
+Exit with code = 0
