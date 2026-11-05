@@ -1,0 +1,85 @@
+diff --git a/src/main/scala/xiangshan/backend/decode/VecDecoder.scala b/src/main/scala/xiangshan/backend/decode/VecDecoder.scala
+index 376419107..fef23da1c 100644
+--- a/src/main/scala/xiangshan/backend/decode/VecDecoder.scala
++++ b/src/main/scala/xiangshan/backend/decode/VecDecoder.scala
+@@ -185,8 +185,19 @@ case class VST(src2: BitPat, fuOp: BitPat, strided: Boolean = false, indexed: Bo
+ }
+ 
+ object VecDecoder extends DecodeConstants {
++  // ===================== 自定义 vdot.vv（CIE 香山赛道） =====================
++  // 编码：OP-V(0x57) + funct3=000(OPIVV) + vm=1 + funct6=0b110111
++  //   - funct6=0b110111 是 RVV 1.0 的保留值，且不在本仓库任何译码表中
++  //   - 复核脚本：python3 scripts/check_opv_encoding.py --need 000:110111 --vm 1
++  // 语义：vs1/vs2 各取低 8 个 int8，符号扩展后乘加，int32 结果写 vd[3:0]，其余 96 位清零
++  private val VDOT_VV: BitPat = BitPat("b1101111??????????000?????1010111")
++  // fuOpType = {FMT.VVV(0b00), sign(1), opcode(0b110111)} = 9'b001110111
++  // 选择在香山主仓内定义 fuOp 字面量，不修改 yunsuan 子模块
++  private val VDOT_FUOP: BitPat = BitPat("b001110111")
++
+   val opivv: Array[(BitPat, XSDecodeBase)] = Array(
+     VADD_VV         -> OPIVV(FuType.vialuF, VialuFixType.vadd_vv, T, F, F),
++    VDOT_VV         -> OPIVV(FuType.vialuF, VDOT_FUOP, T, F, F),   // vdot.vv：自定义点积
+     VSUB_VV         -> OPIVV(FuType.vialuF, VialuFixType.vsub_vv, T, F, F),
+ 
+     VMINU_VV        -> OPIVV(FuType.vialuF, VialuFixType.vminu_vv, T, F, F),
+diff --git a/src/main/scala/xiangshan/backend/fu/wrapper/VIAluFix.scala b/src/main/scala/xiangshan/backend/fu/wrapper/VIAluFix.scala
+index 75dd676a3..292285503 100644
+--- a/src/main/scala/xiangshan/backend/fu/wrapper/VIAluFix.scala
++++ b/src/main/scala/xiangshan/backend/fu/wrapper/VIAluFix.scala
+@@ -139,6 +139,16 @@ class VIAluFix(cfg: FuConfig)(implicit p: Parameters) extends VecPipedFuncUnit(c
+   private val dataWidthOfDataModule = 64
+   private val numVecModule = dataWidth / dataWidthOfDataModule
+ 
++  // ===================== 自定义 vdot.vv（CIE 香山赛道） =====================
++  // fuOpType = {FMT.VVV(0b00), sign(1), opcode(0b110111)} = 9'b001110111
++  private val inIsVdot: Bool = fuOpType === "b001110111".U(9.W)
++  // 8 个 int8 符号扩展相乘，再用 +& 逐级加宽（最宽 39 位），不可能溢出
++  private val vdotSum: SInt = (0 until 8).map { i =>
++    (vs1(8 * i + 7, 8 * i).asSInt * vs2(8 * i + 7, 8 * i).asSInt).pad(32)
++  }.reduce(_ +& _)
++  // 写回形态：高 96 位清零，低 32 位为 int32 点积结果（小端 = 字节 0..3）
++  private val vdotDataNext: UInt = Cat(0.U((dataWidth - 32).W), vdotSum(31, 0).asUInt)
++
+   // modules
+   private val typeMod = Module(new VIAluSrcTypeModule)
+   private val vs2Split = Module(new VecDataSplitModule(dataWidth, dataWidthOfDataModule))
+@@ -234,7 +244,7 @@ class VIAluFix(cfg: FuConfig)(implicit p: Parameters) extends VecPipedFuncUnit(c
+ 
+   vIntFixpAlus.zipWithIndex.foreach {
+     case (mod, i) =>
+-      mod.io.fire := io.in.valid
++      mod.io.fire := io.in.valid && !inIsVdot   // vdot 走独立通路，关掉既有通道
+       mod.io.opcode := opcode
+ 
+       mod.io.info.vm := vm
+@@ -265,6 +275,12 @@ class VIAluFix(cfg: FuConfig)(implicit p: Parameters) extends VecPipedFuncUnit(c
+   /**
+    * [[mgu]]'s in connection
+    */
++  // vdot：VialuCfg 的 latency = 1，用一级寄存器把结果/标志对齐到输出级
++  private val outIsVdot = RegEnable(inIsVdot, io.in.valid)
++  private val outVdotData = RegEnable(vdotDataNext, io.in.valid)
++  // vdot 只定义 SEW=8：SEW≠8 时按非法指令处理（与 NEMU 参考模型保持同一规则）
++  private val outVdotSewIllegal = RegEnable(inIsVdot && vsew =/= VSew.e8, io.in.valid)
++
+   private val outIsVwsll = RegEnable(isVwsll, io.in.valid)
+   private val outIsVwsllEewVdIs64 = RegEnable(isVwsllEewVdIs64, io.in.valid)
+   private val outIsVwsllEewVdIs32 = RegEnable(isVwsllEewVdIs32, io.in.valid)
+@@ -355,9 +371,14 @@ class VIAluFix(cfg: FuConfig)(implicit p: Parameters) extends VecPipedFuncUnit(c
+   mgtu.io.in.vd := Mux(dstMask && !outVecCtrl.isOpMask, mgu.io.out.vd, outVd)
+   mgtu.io.in.vl := outVl
+ 
+-  io.out.bits.res.data := Mux(outVstartGeVl, outOldVd, Mux(dstMask, mgtu.io.out.vd, mgu.io.out.vd))
+-  io.out.bits.res.vxsat.get := Mux(outVstartGeVl, false.B, (outVxsatReal & mgu.io.out.active).orR)
+-  io.out.bits.ctrl.exceptionVec.get(ExceptionNO.illegalInstr) := mgu.io.out.illegal && !outVstartGeVl
++  // vdot 整寄存器写回：绕过 mask/tail 逻辑，保证"其余 96 位清零"与 vl 无关
++  io.out.bits.res.data := Mux(outIsVdot, outVdotData,
++    Mux(outVstartGeVl, outOldVd, Mux(dstMask, mgtu.io.out.vd, mgu.io.out.vd)))
++  io.out.bits.res.vxsat.get := Mux(outIsVdot, false.B,
++    Mux(outVstartGeVl, false.B, (outVxsatReal & mgu.io.out.active).orR))
++  // vdot 的 SEW 非法判定与既有通道的 illegal 取或；vdot 正常执行时 mgu 通路已旁路
++  io.out.bits.ctrl.exceptionVec.get(ExceptionNO.illegalInstr) :=
++    (mgu.io.out.illegal && !outVstartGeVl && !outIsVdot) || outVdotSewIllegal
+ 
+   // util function
+   def splitMask(maskIn: UInt, sew: SewOH): Vec[UInt] = {

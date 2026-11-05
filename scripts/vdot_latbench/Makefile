@@ -1,0 +1,3 @@
+NAME = vdot_latbench
+SRCS = main.c
+include $(AM_HOME)/Makefile.app

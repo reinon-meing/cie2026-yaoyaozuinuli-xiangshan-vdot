@@ -1,0 +1,66 @@
+diff --git a/src/isa/riscv64/include/isa-all-instr.h b/src/isa/riscv64/include/isa-all-instr.h
+index 2f18ca17..170882ac 100644
+--- a/src/isa/riscv64/include/isa-all-instr.h
++++ b/src/isa/riscv64/include/isa-all-instr.h
+@@ -155,7 +155,7 @@
+ 
+ #ifdef CONFIG_RVV
+ #define VECTOR_INSTR_TERNARY(f) \
+-  f(vadd) f(vsub) f(vrsub) f(vminu) f(vmin) \
++  f(vadd) f(vdot) f(vsub) f(vrsub) f(vminu) f(vmin) \
+   f(vmaxu) f(vmax) f(vand) f(vor) f(vxor) \
+   f(vrgather) f(vrgatherei16) \
+   f(vadc) f(vmadc) f(vsbc) f(vmsbc) \
+diff --git a/src/isa/riscv64/instr/rvv/decode.h b/src/isa/riscv64/instr/rvv/decode.h
+index ee7618e0..00d5b2d6 100644
+--- a/src/isa/riscv64/instr/rvv/decode.h
++++ b/src/isa/riscv64/instr/rvv/decode.h
+@@ -164,6 +164,9 @@ def_THelper(vopivv) {
+   if (!vp_enable()) {
+     return EXEC_ID_inv;
+   }
++  // CIE 香山赛道自定义 vdot.vv：OP-V + funct3=000 + vm=1 + funct6=0b110111
++  // 语义：vs1/vs2 各取 8 个 int8 符号扩展乘加，int32 结果写 vd 最低 4 字节，其余清零
++  def_INSTR_TAB("110111 1 ????? ????? ??? ????? ????? ??", vdot);
+   def_INSTR_TAB("000000 ? ????? ????? ??? ????? ????? ??", vadd);
+   def_INSTR_TAB("000010 ? ????? ????? ??? ????? ????? ??", vsub);
+   def_INSTR_TAB("000100 ? ????? ????? ??? ????? ????? ??", vminu);
+diff --git a/src/isa/riscv64/instr/rvv/vcompute.h b/src/isa/riscv64/instr/rvv/vcompute.h
+index 2bcb6aae..050f08aa 100644
+--- a/src/isa/riscv64/instr/rvv/vcompute.h
++++ b/src/isa/riscv64/instr/rvv/vcompute.h
+@@ -23,6 +23,34 @@ def_EHelper(vadd) {
+   ARITH(ADD, SIGNED)
+ }
+ 
++// CIE 香山赛道自定义 vdot.vv（与香山 RTL / 设计文档同语义）
++//   - 只定义 SEW=8；SEW≠8 与香山 RTL 一致地触发非法指令异常
++//   - 取 vs1/vs2 的字节 0..7 做 int8 符号扩展点积，int32 结果写入 vd 最低 4 字节（小端）
++//   - vd 的其余位清零，与 vl / vstart / 掩码无关
++def_EHelper(vdot) {
++  require_vector(true);
++  if (vtype->vsew != 0) {
++    longjmp_exception(EX_II);
++  }
++  int32_t sum = 0;
++  for (int i = 0; i < 8; i++) {
++    // 注意：NEMU 的 rtl.h 里 s0/s1/s2 是宏，局部变量不能叫 s1/s2
++    rtlreg_t vs1_val, vs2_val;
++    // vsew=0（字节宽）、按 m1 的字节索引取；src2/src1 顺序对乘法交换律无影响
++    get_vreg(id_src2->reg, i, &vs1_val, 0, vtype->vlmul, 1, 0);
++    get_vreg(id_src1->reg, i, &vs2_val, 0, vtype->vlmul, 1, 0);
++    sum += (int32_t)(vs1_val * vs2_val);
++  }
++  // 整寄存器写回：先把 vd 低 128 位的 16 个字节清零，再写小端 int32 结果
++  for (int i = 0; i < VLEN / 8; i++) {
++    set_vreg(id_dest->reg, i, 0, 0, vtype->vlmul, 0);
++  }
++  for (int i = 0; i < 4; i++) {
++    set_vreg(id_dest->reg, i, ((uint32_t)sum >> (8 * i)) & 0xff, 0, vtype->vlmul, 0);
++  }
++  vp_set_dirty();
++}
++
+ def_EHelper(vsub) {
+   ARITH(SUB, SIGNED)
+ }

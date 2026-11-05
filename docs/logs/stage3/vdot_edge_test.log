@@ -1,0 +1,16 @@
+emu-diff compiled at Nov  3 2026, 19:00:22
+Using simulated 32768B flash
+Using simulated 8386560MB RAM
+The image is /home/minecraft-server/xs-env/nexus-am/apps/vdot_edge_test/build/vdot_edge_test-riscv64-xs.bin
+The reference model is /home/minecraft-server/xs-env/NEMU/build/riscv64-nemu-interpreter-so
+VDOT EDGE BEGIN
+[C1 LMUL=2] got=120 tail0=1
+C1 v3: 78 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+C1 v4: 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a 5a
+[C2 vd=vs1] got=120 expect=120
+[C3 vl=0] vd0=960
+C3 v3: c0 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[C4 vstart=4] got=120
+C4 v3: 78 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+VDOT EDGE DONE
+Exit with code = 0

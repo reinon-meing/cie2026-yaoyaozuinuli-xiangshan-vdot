@@ -1,0 +1,6 @@
+*.vcd
+*.fst
+*.log
+!docs/logs/**/*.log
+__pycache__/
+.venv/
